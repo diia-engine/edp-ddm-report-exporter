@@ -1,0 +1,21 @@
+spring:
+  zipkin:
+    enabled: false
+
+server:
+  port: 7070
+
+redash:
+  url: https://redash-admin-mdtu-ddm-edp-cicd-release-1-4-stag.apps.cicd2.mdtu-ddm.projects.epam.com
+
+openshift:
+  namespace: namespace
+
+logging:
+  level:
+    root: INFO
+    org.zalando.logbook: TRACE
+  pattern:
+    #   Logging patterns inherited from Spring Boot default logging system configuration
+    #   add tracing
+    console: '%d{${LOG_DATEFORMAT_PATTERN}} [trace:%X{traceId}/%X{spanId}/%X{x-request-id}] ${LOG_LEVEL_PATTERN} %pid --- [%15.15t] %-40.40c{1.} : %m%n${LOG_EXCEPTION_CONVERSION_WORD}'

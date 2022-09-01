@@ -1,0 +1,33 @@
+name: report-exporter
+
+version: 1.1.0
+
+port: 8080
+
+service:
+  port: 8080
+
+ingress:
+  required: true
+  site: report-exporter
+
+image:
+  name: report-exporter
+  version: latest
+
+probes:
+  liveness:
+    path: /actuator/health/liveness
+  readiness:
+    path: /actuator/health/readiness
+
+redash:
+  secret: redash-api-keys
+
+monitoring:
+  namespace: openshift-monitoring
+  prometheusScrapePath: /actuator/prometheus
+  jobLabel: app
+
+role:
+  name: report-exporter-read-secrets

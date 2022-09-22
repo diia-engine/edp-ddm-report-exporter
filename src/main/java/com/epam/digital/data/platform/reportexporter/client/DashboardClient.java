@@ -30,6 +30,6 @@ public interface DashboardClient {
   @GetMapping("/api/dashboards")
   ResponseEntity<Page<Dashboard>> getDashboards();
 
-  @GetMapping("/api/dashboards/{slug}")
-  ResponseEntity<Dashboard> getDashboardBySlug(@PathVariable("slug") String slug);
+  @GetMapping("/api/dashboards/{id}")
+  ResponseEntity<Dashboard> getDashboardById(@PathVariable("id") Long id);
 }

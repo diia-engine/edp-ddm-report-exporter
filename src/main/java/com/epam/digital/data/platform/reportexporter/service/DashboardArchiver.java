@@ -40,9 +40,9 @@ public class DashboardArchiver {
 
   private final Logger log = LoggerFactory.getLogger(DashboardArchiver.class);
 
-  private final String ZIP_FILE_NAME = "dashboard_%s.zip";
-  private final String QUERY_FILE_NAME = "queries/queries_%s.json";
-  private final String DASHBOARD_FILE_NAME = "dashboard_%s.json";
+  private static final String ZIP_FILE_NAME = "dashboard_%s.zip";
+  private static final String QUERY_FILE_NAME = "queries/queries_%s.json";
+  private static final String DASHBOARD_FILE_NAME = "dashboard_%s.json";
 
   private final ObjectMapper objectMapper;
 
@@ -50,29 +50,29 @@ public class DashboardArchiver {
     this.objectMapper = objectMapper;
   }
   
-  public ByteArrayResource zipDashboard(String slug, Page<Query> queries, Dashboard dashboard) {
-    log.info("Creating zip archive for dashboard with slug {}", slug);
-    var zip = zip(slug, queries, dashboard);
+  public ByteArrayResource zipDashboard(Page<Query> queries, Dashboard dashboard) {
+    log.info("Creating zip archive for dashboard with slug {}", dashboard.getSlug());
+    var zip = zip(queries, dashboard);
 
     try {
       var zipBytes = FileUtils.readFileToByteArray(zip);
       return new ByteArrayResource(zipBytes);
     } catch (Exception e) {
-      log.error("Error during converting zip to byte array for dashboard slug {}", slug);
+      log.error("Error during converting zip to byte array for dashboard slug {}", dashboard.getSlug());
       throw new DashboardZippingException("Could not zip dashboard", e);
     } finally {
       zip.delete();
     }
   }
 
-  private File zip(String slug, Page<Query> queries, Dashboard dashboard) {
-    var zip = new File(String.format(ZIP_FILE_NAME, FilenameUtils.getName(slug)));
+  private File zip(Page<Query> queries, Dashboard dashboard) {
+    var zip = new File(String.format(ZIP_FILE_NAME, FilenameUtils.getName(dashboard.getSlug())));
 
     try (var zipStream = new ZipOutputStream(new FileOutputStream(zip))) {
-      zipQuery(zipStream, queries, slug);
-      zipDashboard(zipStream, dashboard, slug);
+      zipQuery(zipStream, queries, dashboard.getSlug());
+      zipDashboard(zipStream, dashboard);
     } catch (Exception e) {
-      log.error("Error during creating zip archive for dashboard slug {}", slug);
+      log.error("Error during creating zip archive for dashboard slug {}", dashboard.getSlug());
       throw new DashboardZippingException("Could not zip dashboard", e);
     }
 
@@ -90,10 +90,10 @@ public class DashboardArchiver {
     zipStream.closeEntry();
   }
 
-  private void zipDashboard(ZipOutputStream zipStream, Dashboard dashboard, String slug)
+  private void zipDashboard(ZipOutputStream zipStream, Dashboard dashboard)
       throws IOException {
     log.info("Putting dashboard file into zip archive");
-    var dashboardFile = new ZipEntry(String.format(DASHBOARD_FILE_NAME, FilenameUtils.getName(slug)));
+    var dashboardFile = new ZipEntry(String.format(DASHBOARD_FILE_NAME, FilenameUtils.getName(dashboard.getSlug())));
     var dashboardData = objectMapper.writeValueAsString(dashboard).getBytes(StandardCharsets.UTF_8);
 
     zipStream.putNextEntry(dashboardFile);

@@ -28,6 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.epam.digital.data.platform.reportexporter.model.Dashboard;
+import com.epam.digital.data.platform.reportexporter.model.dto.DashboardArchiveDto;
 import com.epam.digital.data.platform.reportexporter.service.ReportService;
 import java.util.Base64;
 import java.util.List;
@@ -42,7 +43,9 @@ import org.springframework.test.web.servlet.MockMvc;
 class ReportControllerTest {
 
   static final String BASE_URL = "/reports";
-  static final String SLUG_ID = "stub_slug";
+
+  static final Long DASHBOARD_ID = 1L;
+  static final String DASHBOARD_SLUG_ID = "stub_slug";
   static final String ENCODED_STRING = Base64.getEncoder().encodeToString("test".getBytes());
 
   static final String HEADER_NAME = "Content-Disposition";
@@ -71,9 +74,9 @@ class ReportControllerTest {
   @Test
   void getArchive() throws Exception {
     when(reportService.getArchive(any()))
-        .thenReturn(new ByteArrayResource(Base64.getDecoder().decode(ENCODED_STRING)));
+        .thenReturn(new DashboardArchiveDto(DASHBOARD_SLUG_ID, new ByteArrayResource(Base64.getDecoder().decode(ENCODED_STRING))));
 
-    mockMvc.perform(get(BASE_URL + "/{id}", SLUG_ID))
+    mockMvc.perform(get(BASE_URL + "/{id}", DASHBOARD_ID))
         .andExpect(matchAll(
             status().isOk(),
             content().contentType(MediaType.APPLICATION_OCTET_STREAM),

@@ -23,11 +23,16 @@ import static java.util.stream.Collectors.toList;
 import com.epam.digital.data.platform.reportexporter.client.DashboardClient;
 import com.epam.digital.data.platform.reportexporter.model.Dashboard;
 import java.util.List;
-import org.springframework.core.io.ByteArrayResource;
+
+import com.epam.digital.data.platform.reportexporter.model.dto.DashboardArchiveDto;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
 public class ReportService {
+
+  private final Logger log = LoggerFactory.getLogger(ReportService.class);
 
   private final DashboardClient dashboardClient;
 
@@ -43,6 +48,7 @@ public class ReportService {
   }
 
   public List<Dashboard> getDashboards() {
+    log.info("Retrieving all dashboards");
     var dashboards =  handleResponse(dashboardClient.getDashboards()).getResults();
 
     return dashboards.stream()
@@ -50,11 +56,13 @@ public class ReportService {
         .collect(toList());
   }
 
-  public ByteArrayResource getArchive(String slug) {
-    var dashboard = handleResponse(dashboardClient.getDashboardBySlug(slug));
+  public DashboardArchiveDto getArchive(Long id) {
+    log.info("Getting dashboard archive by id");
+    var dashboard = handleResponse(dashboardClient.getDashboardById(id));
     var queries = queryHelper.getUtilQueries(dashboard);
 
-    return archiver.zipDashboard(slug, formatQueryList(queries), dashboard);
+    var archive = archiver.zipDashboard(formatQueryList(queries), dashboard);
+    return new DashboardArchiveDto(dashboard.getSlug(), archive);
   }
 
 }

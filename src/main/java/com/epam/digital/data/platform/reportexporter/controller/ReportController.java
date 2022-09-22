@@ -46,14 +46,16 @@ public class ReportController {
     return ResponseEntity.ok().body(service.getDashboards());
   }
 
-  @GetMapping(path = "/{slug_id}")
-  public ResponseEntity<Resource> getDashboardArchive(@PathVariable("slug_id") String slugId) {
-    var zip = service.getArchive(slugId);
+  @GetMapping(path = "/{id}")
+  public ResponseEntity<Resource> getDashboardArchive(@PathVariable("id") Long id) {
+    var dashboardArchive = service.getArchive(id);
 
     return ResponseEntity.ok()
         .contentType(MediaType.APPLICATION_OCTET_STREAM)
-        .contentLength(zip.getByteArray().length)
-        .header(CONTENT_DISPOSITION_HEADER_NAME, String.format(ATTACHMENT_HEADER_VALUE, slugId))
-        .body(zip);
+        .contentLength(dashboardArchive.getArchive().getByteArray().length)
+        .header(
+            CONTENT_DISPOSITION_HEADER_NAME,
+            String.format(ATTACHMENT_HEADER_VALUE, dashboardArchive.getDashboardSlug()))
+        .body(dashboardArchive.getArchive());
   }
 }

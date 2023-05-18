@@ -63,7 +63,7 @@ spec:
             - name: OPENSHIFT_NAMESPACE
               value: {{ .Values.namespace }}
             - name: REDASH_URL
-              value: https://redash-admin-{{ .Values.namespace }}.{{ .Values.dnsWildcard }}
+              value: http://admin-tools-redash-admin:5000/reports
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler

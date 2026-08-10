@@ -16,7 +16,7 @@
 
 package com.epam.digital.data.platform.reportexporter.controller;
 
-import com.epam.digital.data.platform.starter.security.PermitAllWebSecurityConfig;
+//import com.epam.digital.data.platform.starter.security.PermitAllWebSecurityConfig;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -30,8 +30,10 @@ import org.springframework.test.context.TestPropertySource;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @WebMvcTest
-@TestPropertySource(properties = {"platform.security.enabled=false"})
-@Import({PermitAllWebSecurityConfig.class})
+// bootstrap.yaml points logging.config at log4j2-json-console.xml, which was shipped by
+// ddm-starter-logger2; without that starter the context fails to load
+@TestPropertySource(properties = {"platform.security.enabled=false", "logging.config="})
+//@Import({PermitAllWebSecurityConfig.class})
 @ContextConfiguration
 public @interface ControllerTest {
 

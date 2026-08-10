@@ -17,13 +17,13 @@
 package com.epam.digital.data.platform.reportexporter.service;
 
 import static com.epam.digital.data.platform.reportexporter.util.ResponseHandler.handleResponse;
-import static java.lang.Math.max;
 import static java.util.stream.Collectors.toSet;
 
 import com.epam.digital.data.platform.reportexporter.client.QueryClient;
 import com.epam.digital.data.platform.reportexporter.model.Dashboard;
 import com.epam.digital.data.platform.reportexporter.model.Query;
 import com.epam.digital.data.platform.reportexporter.model.Widget;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +34,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class QueryHelper {
 
+  /**
+   * Redash rejects GET /api/queries with {@code 400 Page size is out of range (1-250)} for
+   * anything above this, so the whole query list has to be read page by page.
+   */
+  private static final int MAX_PAGE_SIZE = 250;
+  private static final int FIRST_PAGE = 1;
+
   private final QueryClient queryClient;
 
   public QueryHelper(QueryClient queryClient) {
@@ -42,9 +49,8 @@ public class QueryHelper {
 
   public Set<Query> getUtilQueries(Dashboard dashboard) {
     var queryIds = getUtilQueryIds(dashboard);
-    var queries = getQueries(getQueryCount());
 
-    return queries.stream()
+    return getAllQueries().stream()
         .filter(query -> queryIds.contains(query.getId()))
         .collect(toSet());
   }
@@ -56,12 +62,20 @@ public class QueryHelper {
         .collect(toSet());
   }
 
-  private int getQueryCount() {
-    return handleResponse(queryClient.getQueries(1)).getCount();
-  }
+  /**
+   * Reads every query of the Redash instance page by page. The first page already carries the
+   * total count, so no extra probing request is needed.
+   */
+  private List<Query> getAllQueries() {
+    var firstPage = handleResponse(queryClient.getQueries(MAX_PAGE_SIZE, FIRST_PAGE));
+    var queries = new ArrayList<>(firstPage.getResults());
 
-  private List<Query> getQueries(int queryCount) {
-    return handleResponse(queryClient.getQueries(max(1, queryCount))).getResults();
+    var lastPage = (firstPage.getCount() + MAX_PAGE_SIZE - 1) / MAX_PAGE_SIZE;
+    for (var page = FIRST_PAGE + 1; page <= lastPage; page++) {
+      queries.addAll(handleResponse(queryClient.getQueries(MAX_PAGE_SIZE, page)).getResults());
+    }
+
+    return queries;
   }
 
   private Stream<Integer> getParameterQueries(Widget widget) {

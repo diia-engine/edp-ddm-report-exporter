@@ -72,7 +72,7 @@
   </dependencyManagement>
 
   <dependencies>
-    <dependency>
+    <!--<dependency>
       <groupId>com.epam.digital.data.platform</groupId>
       <artifactId>ddm-starter-actuator</artifactId>
       <version>${ddm.starter.actuator.version}</version>
@@ -91,6 +91,18 @@
       <groupId>com.epam.digital.data.platform</groupId>
       <artifactId>ddm-starter-security</artifactId>
       <version>${ddm.starter.security.version}</version>
+    </dependency>-->
+
+    <!-- local-run replacements for the commented-out ddm starters:
+         actuator is required by spring-cloud-sleuth (SkipPatternConfiguration),
+         logback replaces ddm-starter-logger2 as the SLF4J binding -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-actuator</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-logging</artifactId>
     </dependency>
 
     <dependency>

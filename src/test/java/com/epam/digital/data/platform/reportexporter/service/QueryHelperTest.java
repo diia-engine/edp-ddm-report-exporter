@@ -16,33 +16,36 @@
 
 package com.epam.digital.data.platform.reportexporter.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import com.epam.digital.data.platform.reportexporter.client.QueryClient;
 import com.epam.digital.data.platform.reportexporter.model.Dashboard;
 import com.epam.digital.data.platform.reportexporter.model.Page;
 import com.epam.digital.data.platform.reportexporter.model.Query;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.ResourceUtils;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.IntStream;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.*;
+
 @ExtendWith(MockitoExtension.class)
 public class QueryHelperTest {
+
+  /** Hard limit enforced by Redash on GET /api/queries?page_size=... */
+  static final int REDASH_MAX_PAGE_SIZE = 250;
 
   QueryHelper instance;
 
@@ -63,22 +66,23 @@ public class QueryHelperTest {
 
   @Test
   void shouldReturnNotEmptySetWhenFoundParameterQueries() {
-    var response = mockPageResponse(HttpStatus.OK, generateQueries(1, 6));
-    when(queryClient.getQueries(anyInt())).thenReturn(response);
+    var response = mockPageResponse(HttpStatus.OK, 5, generateQueries(1, 6));
+    when(queryClient.getQueries(anyInt(), anyInt())).thenReturn(response);
 
     var result = instance.getUtilQueries(dashboard);
 
-    verify(queryClient).getQueries(1);
-    verify(queryClient).getQueries(5);
+    verify(queryClient).getQueries(REDASH_MAX_PAGE_SIZE, 1);
+    verifyNoMoreInteractions(queryClient);
 
     assertThat(result.size()).isEqualTo(4);
     assertThat(result)
         .containsExactlyInAnyOrder(generateQueries(1, 5).toArray(new Query[0]));
   }
 
-  private ResponseEntity<Page<Query>> mockPageResponse(HttpStatus status, List<Query> queries) {
+  private ResponseEntity<Page<Query>> mockPageResponse(HttpStatus status, int count,
+      List<Query> queries) {
     var page = new Page<Query>();
-    page.setCount(5);
+    page.setCount(count);
     page.setResults(queries);
 
     return new ResponseEntity<>(page, status);
@@ -96,5 +100,33 @@ public class QueryHelperTest {
     });
 
     return queries;
+  }
+
+  /**
+   * Guards the fix for the failure seen against a real Redash: asking for the whole query list in
+   * one page produced {@code GET /api/queries?page_size=252 -> 400 Page size is out of range
+   * (1-250)} and a 500 for the whole {@code GET /reports/{id}}.
+   *
+   * Page 1 here is full and holds nothing the dashboard references - the two queries it needs are
+   * on page 2, so the result also proves the pages are merged rather than only the first one read.
+   */
+  @Test
+  void shouldReadQueriesPageByPageWhenCountExceedsRedashPageSizeLimit() {
+    var queryCount = 252;
+    when(queryClient.getQueries(REDASH_MAX_PAGE_SIZE, 1))
+        .thenReturn(mockPageResponse(HttpStatus.OK, queryCount, generateQueries(100, 350)));
+    when(queryClient.getQueries(REDASH_MAX_PAGE_SIZE, 2))
+        .thenReturn(mockPageResponse(HttpStatus.OK, queryCount, generateQueries(1, 3)));
+
+    var result = instance.getUtilQueries(dashboard);
+
+    var requestedPageSize = ArgumentCaptor.forClass(Integer.class);
+    var requestedPage = ArgumentCaptor.forClass(Integer.class);
+    verify(queryClient, times(2)).getQueries(requestedPageSize.capture(), requestedPage.capture());
+
+    assertThat(requestedPageSize.getAllValues())
+        .allSatisfy(pageSize -> assertThat(pageSize).isBetween(1, REDASH_MAX_PAGE_SIZE));
+    assertThat(requestedPage.getAllValues()).containsExactly(1, 2);
+    assertThat(result).containsExactlyInAnyOrder(generateQueries(1, 3).toArray(new Query[0]));
   }
 }

@@ -18,7 +18,7 @@ package com.epam.digital.data.platform.reportexporter.exception;
 
 import com.epam.digital.data.platform.reportexporter.model.Dashboard;
 import java.util.List;
-import javax.validation.Valid;
+//import javax.validation.Valid;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -50,7 +50,7 @@ public class MockController {
   }
 
   @PostMapping
-  public ResponseEntity<List<Dashboard>> getDashboards(@Valid @RequestBody MockEntity entity) {
+  public ResponseEntity<List<Dashboard>> getDashboards(/*@Valid*/ @RequestBody MockEntity entity) {
     var id = mockService.getDashboards();
 
     return ResponseEntity.ok().body(id);

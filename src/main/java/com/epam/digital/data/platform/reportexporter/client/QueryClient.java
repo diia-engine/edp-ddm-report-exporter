@@ -28,5 +28,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 public interface QueryClient {
 
   @GetMapping("/api/queries")
-  ResponseEntity<Page<Query>> getQueries(@RequestParam("page_size") int pageSize);
+  ResponseEntity<Page<Query>> getQueries(@RequestParam("page_size") int pageSize,
+      @RequestParam("page") int page);
 }

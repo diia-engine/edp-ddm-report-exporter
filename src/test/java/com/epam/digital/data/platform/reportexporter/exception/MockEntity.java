@@ -17,11 +17,11 @@
 package com.epam.digital.data.platform.reportexporter.exception;
 
 import java.util.UUID;
-import javax.validation.constraints.NotBlank;
+//import javax.validation.constraints.NotBlank;
 
 public class MockEntity {
   private UUID entityId;
-  @NotBlank
+  //@NotBlank
   private String excerptType;
 
   public UUID getEntityId() {

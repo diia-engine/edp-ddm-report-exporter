@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="warn">
+  <Properties>
+    <Property name="LOG_DATEFORMAT_PATTERN">yyyy-MM-dd HH:mm:ss.SSS</Property>
+    <Property name="LOG_LEVEL_PATTERN">%5p</Property>
+    <Property name="LOG_EXCEPTION_CONVERSION_WORD">%xwEx</Property>
+  </Properties>
+  <Appenders>
+    <Console follow="true" name="CONSOLE" target="SYSTEM_OUT">
+      <PatternLayout
+        pattern="%d{${LOG_DATEFORMAT_PATTERN}} [trace:%X{traceId}/%X{spanId}/%X{x-request-id}] ${LOG_LEVEL_PATTERN} %pid --- [%15.15t] %-40.40c{1.} : %m%n${LOG_EXCEPTION_CONVERSION_WORD}"
+      />
+    </Console>
+  </Appenders>
+  <Loggers>
+    <Logger level="debug" name="com.epam.digital.data.platform" additivity="false">
+      <AppenderRef ref="CONSOLE"/>
+    </Logger>
+    <Logger level="debug" name="org.springframework.web" additivity="false">
+      <AppenderRef ref="CONSOLE"/>
+    </Logger>
+    <Root level="info">
+      <AppenderRef ref="CONSOLE"/>
+    </Root>
+  </Loggers>
+</Configuration>

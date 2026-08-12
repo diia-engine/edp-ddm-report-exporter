@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-//import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
@@ -54,13 +54,13 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler 
         .body(newDetailedResponse(DASHBOARD_ZIP_ERROR));
   }
 
-  /*@ExceptionHandler(AccessDeniedException.class)
+  @ExceptionHandler(AccessDeniedException.class)
   public ResponseEntity<DetailedErrorResponse<Void>> handleAccessDeniedException(
       AccessDeniedException exception) {
     log.error("Access denied", exception);
     return ResponseEntity.status(HttpStatus.FORBIDDEN)
         .body(newDetailedResponse(FORBIDDEN_OPERATION));
-  }*/
+  }
 
   @ExceptionHandler(NotFoundException.class)
   public ResponseEntity<DetailedErrorResponse<Void>> handleNotFoundException(

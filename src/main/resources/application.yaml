@@ -1,6 +1,10 @@
 spring:
   application:
     name: report-exporter
+  # ddm-starter-security used to exclude this via its own application-default.yml;
+  # without the exclusion Spring Boot would generate a random in-memory user
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
   mvc:
     throw-exception-if-no-handler-found: true
   zipkin:

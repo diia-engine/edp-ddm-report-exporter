@@ -16,7 +16,9 @@
     <ddm.starter.swagger.version>1.6.0.1</ddm.starter.swagger.version>
     <ddm.starter.actuator.version>1.6.0.3</ddm.starter.actuator.version>
     <ddm.starter.security.version>1.6.0.13</ddm.starter.security.version>
+    <nimbus-jose-jwt.version>9.12.1</nimbus-jose-jwt.version>
     <log4j.version>2.17.0</log4j.version>
+    <logbook.starter.version>2.12.0</logbook.starter.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <java.version>11</java.version>
@@ -93,16 +95,45 @@
       <version>${ddm.starter.security.version}</version>
     </dependency>-->
 
-    <!-- local-run replacements for the commented-out ddm starters:
-         actuator is required by spring-cloud-sleuth (SkipPatternConfiguration),
-         logback replaces ddm-starter-logger2 as the SLF4J binding -->
+    <!-- replacement for the commented-out ddm-starter-actuator: the starter itself is required by
+         spring-cloud-sleuth (SkipPatternConfiguration), and the prometheus registry is what makes
+         /actuator/prometheus exist at all - deploy-templates/servicemonitor.yaml scrapes it -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-actuator</artifactId>
     </dependency>
     <dependency>
+      <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-registry-prometheus</artifactId>
+    </dependency>
+
+    <!-- in-house replacement for ddm-starter-logger2: log4j2 + the JsonTemplateLayout config it
+         used to ship (log4j2-json-console.xml, log4j2-layout.json), now in src/main/resources -->
+    <dependency>
       <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-logging</artifactId>
+      <artifactId>spring-boot-starter-log4j2</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-layout-template-json</artifactId>
+      <version>${log4j.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.zalando</groupId>
+      <artifactId>logbook-spring-boot-starter</artifactId>
+      <version>${logbook.starter.version}</version>
+    </dependency>
+
+    <!-- in-house replacement for ddm-starter-security: the JWT filter chain now lives in
+         com.epam.digital.data.platform.reportexporter.security -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-security</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.nimbusds</groupId>
+      <artifactId>nimbus-jose-jwt</artifactId>
+      <version>${nimbus-jose-jwt.version}</version>
     </dependency>
 
     <dependency>
